@@ -15,8 +15,6 @@ on:
         type: choice
         options:
           - npm
-          - github
-          - both
 
 jobs:
   ci:
@@ -30,7 +28,6 @@ jobs:
     outputs:
       package-version: ${{ steps.version-info.outputs.package-version }}
       npm-exists: ${{ steps.version-info.outputs.npm-exists }}
-      github-exists: ${{ steps.version-info.outputs.github-exists }}
 
     steps:
       - name: Checkout code
@@ -52,15 +49,6 @@ jobs:
             echo "✅ Version $PACKAGE_VERSION is new on npm"
           fi
 
-          # Check GitHub Packages (this might fail if package doesn't exist yet)
-          GITHUB_VERSION=$(npm view @typhoonworks/claude-config@$PACKAGE_VERSION version --registry=https://npm.pkg.github.com 2>/dev/null || echo "")
-          if [ "$GITHUB_VERSION" = "$PACKAGE_VERSION" ]; then
-            echo "github-exists=true" >> $GITHUB_OUTPUT
-            echo "📦 Version $PACKAGE_VERSION already exists on GitHub Packages"
-          else
-            echo "github-exists=false" >> $GITHUB_OUTPUT
-            echo "✅ Version $PACKAGE_VERSION is new on GitHub Packages"
-          fi
 
   publish-npm:
     name: Publish to npm
@@ -68,7 +56,6 @@ jobs:
     needs: [ci, check-version]
     if: |
       success() &&
-      (github.event.inputs.registry == 'npm' || github.event.inputs.registry == 'both') &&
       (github.event.inputs.force-publish == 'true' || needs.check-version.outputs.npm-exists == 'false')
 
     steps:
@@ -96,41 +83,3 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  # Publish to GitHub Packages
-  publish-github:
-    name: Publish to GitHub Packages
-    runs-on: ubuntu-latest
-    needs: [ci, check-version]
-    if: |
-      success() &&
-      (github.event.inputs.registry == 'github' || github.event.inputs.registry == 'both') &&
-      (github.event.inputs.force-publish == 'true' || needs.check-version.outputs.github-exists == 'false')
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          registry-url: https://npm.pkg.github.com/
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Configure package for GitHub registry
-        run: |
-          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
-
-      - name: Publish to GitHub Packages
-        run: |
-          if [ "${{ github.event.inputs.force-publish }}" = "true" ]; then
-            echo "🚨 Force publishing version ${{ needs.check-version.outputs.package-version }} to GitHub Packages..."
-          else
-            echo "📦 Publishing version ${{ needs.check-version.outputs.package-version }} to GitHub Packages..."
-          fi
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
