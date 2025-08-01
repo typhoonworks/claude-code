@@ -1,0 +1,68 @@
+{
+  "name": "@typhoonworks/claude-config",
+  "version": "0.1.0",
+  "description": "Claude Code configuration manager for TyphoonWorks projects",
+  "main": "lib/index.js",
+  "bin": {
+    "claude-config": "./bin/claude-config.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:watch": "node --test --watch test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage test/*.test.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run format:check && npm test",
+    "fix": "npm run lint:fix && npm run format",
+    "prepare": "husky",
+    "prepack": "npm run check",
+    "dev": "node bin/claude-config.js",
+    "start": "node bin/claude-config.js"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "config",
+    "cli"
+  ],
+  "author": "Rui Freitas",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/typhoonworks/claude-config.git"
+  },
+  "bugs": {
+    "url": "https://github.com/typhoonworks/claude-config/issues"
+  },
+  "homepage": "https://github.com/typhoonworks/claude-config#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}

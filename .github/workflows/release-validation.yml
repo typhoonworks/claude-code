@@ -1,0 +1,101 @@
+name: Release Validation
+
+on:
+  release:
+    types: [created, edited]
+
+jobs:
+  validate-release:
+    name: Validate release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate release
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG=${GITHUB_REF#refs/tags/}
+
+          echo "📋 Release Validation Report"
+          echo "=========================="
+          echo "Package version: v$PACKAGE_VERSION"
+          echo "Release tag: $RELEASE_TAG"
+          echo ""
+
+          # Check version format
+          if [[ ! "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?$ ]]; then
+            echo "❌ Invalid version format: $PACKAGE_VERSION"
+            echo "   Expected semantic version format (e.g., 1.0.0, 1.0.0-beta.1)"
+            exit 1
+          fi
+
+          # Check if tag matches package.json
+          if [ "v$PACKAGE_VERSION" != "$RELEASE_TAG" ]; then
+            echo "❌ Version mismatch!"
+            echo "   package.json version: v$PACKAGE_VERSION"
+            echo "   Release tag: $RELEASE_TAG"
+            echo ""
+            echo "💡 To fix this:"
+            echo "   1. Update package.json version to match the tag, OR"
+            echo "   2. Update the release tag to match package.json version"
+            exit 1
+          fi
+
+          # Check if version exists on npm
+          NPM_VERSION=$(npm view @typhoonworks/claude-config@$PACKAGE_VERSION version 2>/dev/null || echo "")
+          if [ "$NPM_VERSION" = "$PACKAGE_VERSION" ]; then
+            echo "⚠️  Version $PACKAGE_VERSION already exists on npm"
+            echo "   This release will be skipped during publish"
+          else
+            echo "✅ Version $PACKAGE_VERSION is new - ready to publish"
+          fi
+
+          # Check changelog
+          if [ ! -f "CHANGELOG.md" ]; then
+            echo "⚠️  No CHANGELOG.md found"
+          elif ! grep -q "## \[$PACKAGE_VERSION\]" CHANGELOG.md; then
+            echo "⚠️  Version $PACKAGE_VERSION not found in CHANGELOG.md"
+            echo "   Consider adding an entry for this version"
+          else
+            echo "✅ Version documented in CHANGELOG.md"
+          fi
+
+          # Validate README links
+          if grep -q "v$PACKAGE_VERSION" README.md; then
+            echo "✅ README.md mentions current version"
+          fi
+
+          echo ""
+          echo "🎯 Validation complete!"
+
+      - name: Comment on release
+        if: github.event.action == 'created'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const packageVersion = require('./package.json').version;
+            const releaseTag = context.ref.replace('refs/tags/', '');
+
+            let comment = '## 🤖 Release Validation\n\n';
+
+            if (`v${packageVersion}` === releaseTag) {
+              comment += '✅ **Version Match**: package.json and release tag are aligned\n';
+              comment += `📦 **Version**: ${packageVersion}\n\n`;
+              comment += '🚀 **Status**: Ready for automated publishing once CI passes!\n\n';
+              comment += '---\n*This comment was generated automatically by the release validation workflow.*';
+            } else {
+              comment += '❌ **Version Mismatch**: package.json and release tag do not match\n';
+              comment += `📦 **package.json**: v${packageVersion}\n`;
+              comment += `🏷️ **Release tag**: ${releaseTag}\n\n`;
+              comment += '⚠️ **Action Required**: Please update either the package.json version or the release tag to match.\n\n';
+              comment += '---\n*This comment was generated automatically by the release validation workflow.*';
+            }
+
+            github.rest.repos.createReleaseComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              body: comment
+            });

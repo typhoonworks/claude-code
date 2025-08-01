@@ -1,0 +1,42 @@
+node_modules/
+npm-debug.log*
+.npm
+.lock-wscript
+.coverage
+.nyc_output
+.grunt
+bower_components/
+.lock-wscript
+build/Release
+jspm_packages/
+typings/
+.node_repl_history
+*.tgz
+.yarn-integrity
+.env
+.env.*
+.next
+.vscode/
+.DS_Store
+
+# Linter and formatter cache
+.eslintcache
+.prettier-cache
+
+# Test coverage
+coverage/
+*.lcov
+
+# Build outputs
+dist/
+build/
+*.min.js
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+*.swp
+*.swo
