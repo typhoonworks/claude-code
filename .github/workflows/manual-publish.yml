@@ -49,7 +49,6 @@ jobs:
             echo "✅ Version $PACKAGE_VERSION is new on npm"
           fi
 
-
   publish-npm:
     name: Publish to npm
     runs-on: ubuntu-latest
@@ -82,4 +81,3 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
