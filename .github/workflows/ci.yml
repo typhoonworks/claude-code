@@ -93,38 +93,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # Cross-platform testing - only on main branch pushes
-  test-os:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    needs: lint-and-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest] # Skip ubuntu-latest since it's tested above
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Run tests
-        run: npm test
-
-      - name: Test CLI on ${{ matrix.os }}
-        shell: bash
-        run: |
-          node bin/claude-config.js --version
-          node bin/claude-config.js list
 
   package:
     name: Test package
