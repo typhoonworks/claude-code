@@ -31,13 +31,13 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",
-    "commander": "^11.0.0",
+    "commander": "^14.0.0",
     "fs-extra": "^11.1.1",
     "inquirer": "^8.2.6",
     "ora": "^5.4.1"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20.0.0"
   },
   "repository": {
     "type": "git",
