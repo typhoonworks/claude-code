@@ -1,6 +1,6 @@
 {
   "name": "@typhoonworks/claude-config",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude Code configuration manager for TyphoonWorks projects",
   "main": "lib/index.js",
   "bin": {
@@ -34,7 +34,7 @@
     "commander": "^14.0.0",
     "fs-extra": "^11.1.1",
     "inquirer": "^8.2.6",
-    "ora": "^8.2.0"
+    "ora": "^5.4.1"
   },
   "engines": {
     "node": ">=20.0.0"
